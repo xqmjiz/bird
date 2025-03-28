@@ -112,8 +112,8 @@
                 canvas.height = baseHeight * 8;
                 bird.x = 50 * 8;
                 bird.y = 300 * 8;
-                bird.gravity = 0.1 * 4;
-                bird.jump = -4 * 4;
+                bird.gravity = 0.1 * 8; // スピード倍化（4→8）
+                bird.jump = -4 * 8;     // ジャンプ力も倍化（-16→-32）
                 pipeWidth = 50 * 8;
                 pipeGap = 150 * 8;
             } else {
@@ -156,7 +156,7 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x, bird.y);
-            bird.wingAngle = Math.sin(frames * (isMobileMode ? 0.6 : 0.05)) * 0.2;
+            bird.wingAngle = Math.sin(frames * (isMobileMode ? 1.2 : 0.05)) * 0.2; // 羽ばたきを倍化（0.6→1.2）
 
             const scale = isMobileMode ? 8 : 1;
             ctx.fillStyle = 'yellow';
@@ -279,10 +279,10 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % (isMobileMode ? 180 : 200) === 0) createPipe(); // スマホ版のパイプ間隔を少し広く
+            if (frames % (isMobileMode ? 180 : 200) === 0) createPipe();
             
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= isMobileMode ? 16 : 2;
+                pipes[i].x -= isMobileMode ? 32 : 2; // パイプ移動速度を倍化（16→32）
                 drawPipe(pipes[i].x, pipes[i].topHeight);
 
                 if (!pipes[i].passed && bird.x > pipes[i].x + pipeWidth) {
