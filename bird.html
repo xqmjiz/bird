@@ -102,7 +102,7 @@
             bird.x = 50;
             bird.y = 450;
             bird.gravity = 0.1 * speedMultiplier;
-            bird.jump = speedMultiplier === 1 ? -4 : -3; // 1倍は-4、5倍は-3で抑える
+            bird.jump = -4; // 5倍でも-4で統一、抑えすぎ解消
             pipeWidth = 50;
             pipeGap = 200;
         }
@@ -217,7 +217,7 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % (200 / speedMultiplier) === 0) createPipe(); // スピードに応じてパイプ間隔も調整
+            if (frames % (200 / speedMultiplier) === 0) createPipe();
             
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 2 * speedMultiplier;
