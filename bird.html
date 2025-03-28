@@ -18,8 +18,9 @@
             border: 1px solid #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 600px;
-            height: auto;
+            height: 100%;
+            max-width: none; /* 最大幅制限を解除 */
+            max-height: none; /* 最大高さ制限を解除 */
             display: none;
         }
         #startButton, #speedButtons button {
@@ -68,15 +69,16 @@
         const startButton = document.getElementById('startButton');
         const speedSelect = document.getElementById('speedSelect');
 
-        const baseWidth = 600;
-        const baseHeight = 900;
+        let baseWidth = 600;
+        let baseHeight = 900;
+        let speedMultiplier = 1;
 
         const bird = {
             x: 50,
             y: 450,
             velocity: 0,
             gravity: 0.1,
-            jump: -4, // 基本ジャンプ力
+            jump: -4,
             wingAngle: 0
         };
 
@@ -89,7 +91,6 @@
         let gameStarted = false;
         let frames = 0;
         let fadeAlpha = 0;
-        let speedMultiplier = 1;
 
         function setSpeed(multiplier) {
             speedMultiplier = multiplier;
@@ -97,14 +98,20 @@
             startButton.style.display = 'block';
             speedSelect.style.display = 'none';
 
-            canvas.width = baseWidth;
-            canvas.height = baseHeight;
-            bird.x = 50;
-            bird.y = 450;
+            // 画面サイズをウィンドウ全体に
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            baseWidth = canvas.width;
+            baseHeight = canvas.height;
+
+            // スマホ推奨 (5倍) の場合、要素をスケールアップ
+            const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) : 1;
+            bird.x = 50 * scale;
+            bird.y = baseHeight / 2;
             bird.gravity = 0.1 * speedMultiplier;
-            bird.jump = speedMultiplier === 1 ? -4 : -12; // 1倍は-4、5倍は-12（3倍強化）
-            pipeWidth = 50;
-            pipeGap = 200;
+            bird.jump = speedMultiplier === 1 ? -4 : -12; // 1倍は-4、5倍は-12
+            pipeWidth = 50 * scale;
+            pipeGap = 200 * scale;
         }
 
         function createPipe() {
@@ -117,7 +124,7 @@
         }
 
         function checkCollision() {
-            const birdSize = 20;
+            const birdSize = speedMultiplier === 5 ? 20 * Math.min(baseWidth / 600, baseHeight / 900) : 20;
             if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
                 if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
@@ -134,28 +141,29 @@
             ctx.translate(bird.x, bird.y);
             bird.wingAngle = Math.sin(frames * (0.05 * speedMultiplier)) * 0.2;
 
+            const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
-            ctx.ellipse(0, 0, 20, 15, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = 'orange';
             ctx.beginPath();
-            ctx.moveTo(20, -5);
-            ctx.lineTo(30, 0);
-            ctx.lineTo(20, 5);
+            ctx.moveTo(20 * scale, -5 * scale);
+            ctx.lineTo(30 * scale, 0);
+            ctx.lineTo(20 * scale, 5 * scale);
             ctx.fill();
 
             ctx.fillStyle = 'black';
             ctx.beginPath();
-            ctx.arc(15, -7, 2, 0, Math.PI * 2);
+            ctx.arc(15 * scale, -7 * scale, 2 * scale, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.strokeStyle = 'yellow';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * scale;
             ctx.beginPath();
-            ctx.moveTo(-10, 0);
-            ctx.lineTo(-20, 5 + bird.wingAngle * 10);
+            ctx.moveTo(-10 * scale, 0);
+            ctx.lineTo(-20 * scale, 5 + bird.wingAngle * 10 * scale);
             ctx.stroke();
 
             ctx.restore();
@@ -173,7 +181,7 @@
         }
 
         function resetGame() {
-            bird.y = 450;
+            bird.y = baseHeight / 2;
             bird.velocity = -2;
             pipes.length = 0;
             score = 0;
@@ -199,13 +207,14 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+                const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) : 1;
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 36px Roboto';
+                ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
-                ctx.fillText('ゲームオーバー', canvas.width / 2, canvas.height / 2 - 20);
-                ctx.font = '24px Roboto';
-                ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
-                ctx.fillText(`最高スコア: ${bestScore}`, canvas.width / 2, canvas.height / 2 + 60);
+                ctx.fillText('ゲームオーバー', canvas.width / 2, canvas.height / 2 - 20 * scale);
+                ctx.font = `${24 * scale}px Roboto`;
+                ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 20 * scale);
+                ctx.fillText(`最高スコア: ${bestScore}`, canvas.width / 2, canvas.height / 2 + 60 * scale);
                 ctx.textAlign = 'start';
 
                 startButton.style.display = 'block';
@@ -217,7 +226,8 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % (200 / speedMultiplier) === 0) createPipe();
+            // スマホ推奨 (5倍) の場合、パイプ間隔を広く
+            if (frames % (speedMultiplier === 5 ? 300 : 200 / speedMultiplier) === 0) createPipe();
             
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 2 * speedMultiplier;
@@ -231,10 +241,11 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            ctx.font = 'bold 20px Roboto';
+            const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) : 1;
+            ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
-            ctx.fillText(`スコア: ${score}`, 10, 30);
-            ctx.fillText(`最高スコア: ${bestScore}`, 10, 60);
+            ctx.fillText(`スコア: ${score}`, 10 * scale, 30 * scale);
+            ctx.fillText(`最高スコア: ${bestScore}`, 10 * scale, 60 * scale);
 
             if (checkCollision()) {
                 gameOver = true;
@@ -280,6 +291,21 @@
                 gameLoop();
             } else if (!gameOver) {
                 bird.velocity = bird.jump;
+            }
+        });
+
+        // ウィンドウサイズ変更時にキャンバスを調整
+        window.addEventListener('resize', () => {
+            if (gameStarted || canvas.style.display === 'block') {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                baseWidth = canvas.width;
+                baseHeight = canvas.height;
+                const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) : 1;
+                bird.x = 50 * scale;
+                bird.y = baseHeight / 2;
+                pipeWidth = 50 * scale;
+                pipeGap = 200 * scale;
             }
         });
 
