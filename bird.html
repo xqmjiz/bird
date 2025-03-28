@@ -18,7 +18,7 @@
             border: 1px solid #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 400px;
+            max-width: 600px;
             height: auto;
             display: none;
         }
@@ -79,12 +79,12 @@
         const modeSelect = document.getElementById('modeSelect');
 
         let isMobileMode = false;
-        const baseWidth = 400;
-        const baseHeight = 600;
+        const baseWidth = 600;
+        const baseHeight = 900;
 
         const bird = {
             x: 50,
-            y: 300,
+            y: 450,
             velocity: 0,
             gravity: 0.1,
             jump: -4,
@@ -108,19 +108,19 @@
             modeSelect.style.display = 'none';
 
             if (isMobileMode) {
-                canvas.width = baseWidth * 16;  // 画面サイズを16倍（8→16）
-                canvas.height = baseHeight * 16;
-                bird.x = 50 * 16;
-                bird.y = 300 * 16;
-                bird.gravity = 0.1 * 24;  // スピード6倍
-                bird.jump = -4 * 24;      // ジャンプ力6倍
-                pipeWidth = 50 * 16;
-                pipeGap = 150 * 16;
+                canvas.width = baseWidth * 12;
+                canvas.height = baseHeight * 12;
+                bird.x = 50 * 12;
+                bird.y = 450 * 12;
+                bird.gravity = 0.1 * 48;  // スピード12倍（16→48）
+                bird.jump = -4 * 48;      // ジャンプ力12倍（-64→-192）
+                pipeWidth = 50 * 12;
+                pipeGap = 150 * 12;
             } else {
                 canvas.width = baseWidth;
                 canvas.height = baseHeight;
                 bird.x = 50;
-                bird.y = 300;
+                bird.y = 450;
                 bird.gravity = 0.1;
                 bird.jump = -4;
                 pipeWidth = 50;
@@ -132,7 +132,7 @@
         mobileButton.addEventListener('click', () => setMode(true));
 
         function createPipe() {
-            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobileMode ? 100 * 16 : 100)) + (isMobileMode ? 50 * 16 : 50);
+            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobileMode ? 100 * 12 : 100)) + (isMobileMode ? 50 * 12 : 50);
             pipes.push({
                 x: canvas.width,
                 topHeight: pipeHeight,
@@ -141,7 +141,7 @@
         }
 
         function checkCollision() {
-            const birdSize = isMobileMode ? 20 * 16 : 20;
+            const birdSize = isMobileMode ? 20 * 12 : 20;
             if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
                 if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
@@ -156,9 +156,9 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x, bird.y);
-            bird.wingAngle = Math.sin(frames * (isMobileMode ? 3.6 : 0.05)) * 0.2;
+            bird.wingAngle = Math.sin(frames * (isMobileMode ? 7.2 : 0.05)) * 0.2; // 羽ばたき12倍（2.4→7.2）
 
-            const scale = isMobileMode ? 16 : 1;
+            const scale = isMobileMode ? 12 : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
@@ -191,7 +191,7 @@
         }
 
         function drawPipe(x, topHeight) {
-            const scale = isMobileMode ? 16 : 1;
+            const scale = isMobileMode ? 12 : 1;
             const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
             gradient.addColorStop(0, '#00cc00');
             gradient.addColorStop(0.5, '#00e600');
@@ -228,7 +228,7 @@
         }
 
         function resetGame() {
-            bird.y = isMobileMode ? 300 * 16 : 300;
+            bird.y = isMobileMode ? 450 * 12 : 450;
             bird.velocity = -2;
             pipes.length = 0;
             score = 0;
@@ -257,7 +257,7 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const scale = isMobileMode ? 16 : 1;
+                const scale = isMobileMode ? 12 : 1;
                 ctx.fillStyle = 'white';
                 ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
@@ -282,7 +282,7 @@
             if (frames % (isMobileMode ? 120 : 200) === 0) createPipe();
             
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= isMobileMode ? 96 : 2; // スピード6倍
+                pipes[i].x -= isMobileMode ? 192 : 2; // スピード12倍（64→192）
                 drawPipe(pipes[i].x, pipes[i].topHeight);
 
                 if (!pipes[i].passed && bird.x > pipes[i].x + pipeWidth) {
@@ -293,7 +293,7 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            const scale = isMobileMode ? 16 : 1;
+            const scale = isMobileMode ? 12 : 1;
             ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
@@ -319,7 +319,6 @@
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            console.log("Touch detected"); // デバッグ用ログ
             if (!gameStarted) {
                 resetGame();
                 gameStarted = true;
@@ -331,7 +330,6 @@
         });
 
         startButton.addEventListener('click', () => {
-            console.log("Start button clicked"); // デバッグ用ログ
             if (!gameStarted || gameOver) {
                 resetGame();
                 gameStarted = true;
@@ -341,7 +339,6 @@
         });
 
         canvas.addEventListener('click', (e) => {
-            console.log("Canvas clicked"); // デバッグ用ログ
             if (!gameStarted) {
                 resetGame();
                 gameStarted = true;
