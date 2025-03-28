@@ -24,17 +24,17 @@
             display: none;
         }
         #startButton, #speedButtons button {
-            padding: 12px 24px;
-            font-size: 20px;
+            padding: 20px 40px; /* パディングを大きく */
+            font-size: 28px; /* フォントサイズを大きく */
             font-family: 'Roboto', sans-serif;
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px; /* 角丸も少し大きく */
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             transition: box-shadow 0.2s;
-            margin: 10px;
+            margin: 15px; /* 間隔も少し広く */
         }
         #startButton:hover, #speedButtons button:hover {
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
@@ -51,6 +51,9 @@
             color: white;
             display: block;
         }
+        #speedSelect h2 {
+            font-size: 36px; /* メニューの見出しも大きく */
+        }
     </style>
 </head>
 <body>
@@ -58,7 +61,7 @@
         <h2>スピードを選択してください</h2>
         <div id="speedButtons">
             <button onclick="setSpeed(1)">PC推奨 (1倍)</button>
-            <button onclick="setSpeed(5)">スマホ推奨 (5倍)</button>
+            <button onclick="setSpeed(5.5)">スマホ推奨 (5.5倍)</button>
         </div>
     </div>
     <canvas id="gameCanvas"></canvas>
@@ -103,13 +106,13 @@
             baseWidth = canvas.width;
             baseHeight = canvas.height;
 
-            const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1; // スマホは2倍スケール
+            const scale = speedMultiplier === 5.5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
             bird.x = 50 * scale;
             bird.y = baseHeight / 2;
             bird.gravity = 0.1 * speedMultiplier;
             bird.jump = speedMultiplier === 1 ? -4 : -12;
-            pipeWidth = speedMultiplier === 5 ? 100 * scale : 50; // スマホでパイプ幅を2倍
-            pipeGap = speedMultiplier === 5 ? 150 * scale : 200; // スマホで隙間を短く
+            pipeWidth = speedMultiplier === 5.5 ? 100 * scale : 50;
+            pipeGap = speedMultiplier === 5.5 ? 150 * scale : 200;
         }
 
         function createPipe() {
@@ -122,7 +125,7 @@
         }
 
         function checkCollision() {
-            const birdSize = speedMultiplier === 5 ? 20 * Math.min(baseWidth / 600, baseHeight / 900) * 2 : 20;
+            const birdSize = speedMultiplier === 5.5 ? 20 * Math.min(baseWidth / 600, baseHeight / 900) * 2 : 20;
             if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
                 if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
@@ -139,7 +142,7 @@
             ctx.translate(bird.x, bird.y);
             bird.wingAngle = Math.sin(frames * (0.05 * speedMultiplier)) * 0.2;
 
-            const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+            const scale = speedMultiplier === 5.5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
@@ -205,7 +208,7 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+                const scale = speedMultiplier === 5.5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
                 ctx.fillStyle = 'white';
                 ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
@@ -224,8 +227,7 @@
             bird.y += bird.velocity;
             drawBird();
 
-            // スマホ推奨 (5倍) の場合、パイプ間隔を狭く
-            if (frames % (speedMultiplier === 5 ? 150 : 200 / speedMultiplier) === 0) createPipe();
+            if (frames % (speedMultiplier === 5.5 ? 150 : 200 / speedMultiplier) === 0) createPipe();
             
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 2 * speedMultiplier;
@@ -239,7 +241,7 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+            const scale = speedMultiplier === 5.5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
             ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
             ctx.fillText(`スコア: ${score}`, 10 * scale, 30 * scale);
@@ -298,11 +300,11 @@
                 canvas.height = window.innerHeight;
                 baseWidth = canvas.width;
                 baseHeight = canvas.height;
-                const scale = speedMultiplier === 5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+                const scale = speedMultiplier === 5.5 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
                 bird.x = 50 * scale;
                 bird.y = baseHeight / 2;
-                pipeWidth = speedMultiplier === 5 ? 100 * scale : 50;
-                pipeGap = speedMultiplier === 5 ? 150 * scale : 200;
+                pipeWidth = speedMultiplier === 5.5 ? 100 * scale : 50;
+                pipeGap = speedMultiplier === 5.5 ? 150 * scale : 200;
             }
         });
 
