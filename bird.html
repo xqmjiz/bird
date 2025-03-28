@@ -15,8 +15,10 @@
         }
         canvas {
             border: 1px solid #555;
-            display: block;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 100%; /* スマホで画面幅にフィット */
+            max-width: 400px; /* 最大幅を制限 */
+            height: auto; /* アスペクト比を維持 */
         }
         #startButton {
             position: absolute;
@@ -37,6 +39,16 @@
         #startButton:hover {
             transform: translate(-50%, -55%);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+        /* スマホ対応 */
+        @media (max-width: 600px) {
+            canvas {
+                height: 80vh; /* スマホで高さを調整 */
+            }
+            #startButton {
+                font-size: 16px; /* スマホでボタンサイズを小さく */
+                padding: 10px 20px;
+            }
         }
     </style>
 </head>
@@ -91,7 +103,7 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x, bird.y);
-            bird.wingAngle = Math.sin(frames * 0.1) * 0.2;
+            bird.wingAngle = Math.sin(frames * 0.15) * 0.2; // 羽ばたき速度を少しアップ
 
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
@@ -125,13 +137,11 @@
         }
 
         function drawPipe(x, topHeight) {
-            // 緑のグラデーション
             const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
             gradient.addColorStop(0, '#00cc00');
             gradient.addColorStop(0.5, '#00e600');
             gradient.addColorStop(1, '#00cc00');
 
-            // 上パイプ
             ctx.fillStyle = gradient;
             ctx.beginPath();
             ctx.moveTo(x, 0);
@@ -141,7 +151,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // 下パイプ
             ctx.beginPath();
             ctx.moveTo(x, topHeight + pipeGap + 10);
             ctx.quadraticCurveTo(x + pipeWidth / 2, topHeight + pipeGap, x + pipeWidth, topHeight + pipeGap + 10);
@@ -150,17 +159,14 @@
             ctx.closePath();
             ctx.fill();
 
-            // 四角い縁取り
             ctx.fillStyle = '#009900';
-            ctx.fillRect(x - 5, topHeight - 20, pipeWidth + 10, 20); // 上パイプの縁
-            ctx.fillRect(x - 5, topHeight + pipeGap, pipeWidth + 10, 20); // 下パイプの縁
+            ctx.fillRect(x - 5, topHeight - 20, pipeWidth + 10, 20);
+            ctx.fillRect(x - 5, topHeight + pipeGap, pipeWidth + 10, 20);
 
-            // ハイライト（光沢感）
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.fillRect(x + 5, 0, 10, topHeight - 10);
             ctx.fillRect(x + 5, topHeight + pipeGap + 10, 10, canvas.height - (topHeight + pipeGap + 10));
 
-            // 影
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.fillRect(x + pipeWidth - 5, 0, 5, topHeight - 10);
             ctx.fillRect(x + pipeWidth - 5, topHeight + pipeGap + 10, 5, canvas.height - (topHeight + pipeGap + 10));
@@ -217,10 +223,10 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % 150 === 0) createPipe();
+            if (frames % 100 === 0) createPipe(); // パイプ生成間隔を短く（150→100）
             
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= 2;
+                pipes[i].x -= 4; // スピードを2から4にアップ
                 drawPipe(pipes[i].x, pipes[i].topHeight);
 
                 if (!pipes[i].passed && bird.x > pipes[i].x + pipeWidth) {
