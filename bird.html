@@ -108,14 +108,14 @@
             modeSelect.style.display = 'none';
 
             if (isMobileMode) {
-                canvas.width = baseWidth * 8;
-                canvas.height = baseHeight * 8;
-                bird.x = 50 * 8;
-                bird.y = 300 * 8;
-                bird.gravity = 0.1 * 8; // スピード倍化（4→8）
-                bird.jump = -4 * 8;     // ジャンプ力も倍化（-16→-32）
-                pipeWidth = 50 * 8;
-                pipeGap = 150 * 8;
+                canvas.width = baseWidth * 40;  // 画面サイズを5倍（8→40）
+                canvas.height = baseHeight * 40;
+                bird.x = 50 * 40;
+                bird.y = 300 * 40;
+                bird.gravity = 0.1 * 24;  // スピード6倍（4→24）
+                bird.jump = -4 * 24;      // ジャンプ力も6倍（-16→-96）
+                pipeWidth = 50 * 40;
+                pipeGap = 150 * 40;
             } else {
                 canvas.width = baseWidth;
                 canvas.height = baseHeight;
@@ -132,7 +132,7 @@
         mobileButton.addEventListener('click', () => setMode(true));
 
         function createPipe() {
-            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobileMode ? 100 * 8 : 100)) + (isMobileMode ? 50 * 8 : 50);
+            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobileMode ? 100 * 40 : 100)) + (isMobileMode ? 50 * 40 : 50);
             pipes.push({
                 x: canvas.width,
                 topHeight: pipeHeight,
@@ -141,7 +141,7 @@
         }
 
         function checkCollision() {
-            const birdSize = isMobileMode ? 20 * 8 : 20;
+            const birdSize = isMobileMode ? 20 * 40 : 20;
             if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
                 if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
@@ -156,9 +156,9 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x, bird.y);
-            bird.wingAngle = Math.sin(frames * (isMobileMode ? 1.2 : 0.05)) * 0.2; // 羽ばたきを倍化（0.6→1.2）
+            bird.wingAngle = Math.sin(frames * (isMobileMode ? 3.6 : 0.05)) * 0.2; // 羽ばたき6倍（1.2→3.6）
 
-            const scale = isMobileMode ? 8 : 1;
+            const scale = isMobileMode ? 40 : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
@@ -191,7 +191,7 @@
         }
 
         function drawPipe(x, topHeight) {
-            const scale = isMobileMode ? 8 : 1;
+            const scale = isMobileMode ? 40 : 1;
             const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
             gradient.addColorStop(0, '#00cc00');
             gradient.addColorStop(0.5, '#00e600');
@@ -228,7 +228,7 @@
         }
 
         function resetGame() {
-            bird.y = isMobileMode ? 300 * 8 : 300;
+            bird.y = isMobileMode ? 300 * 40 : 300;
             bird.velocity = -2;
             pipes.length = 0;
             score = 0;
@@ -257,7 +257,7 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const scale = isMobileMode ? 8 : 1;
+                const scale = isMobileMode ? 40 : 1;
                 ctx.fillStyle = 'white';
                 ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
@@ -279,10 +279,10 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % (isMobileMode ? 180 : 200) === 0) createPipe();
+            if (frames % (isMobileMode ? 120 : 200) === 0) createPipe(); // パイプ間隔を狭く
             
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= isMobileMode ? 32 : 2; // パイプ移動速度を倍化（16→32）
+                pipes[i].x -= isMobileMode ? 96 : 2; // パイプ移動速度6倍（32→96）
                 drawPipe(pipes[i].x, pipes[i].topHeight);
 
                 if (!pipes[i].passed && bird.x > pipes[i].x + pipeWidth) {
@@ -293,7 +293,7 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            const scale = isMobileMode ? 8 : 1;
+            const scale = isMobileMode ? 40 : 1;
             ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
