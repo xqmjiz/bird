@@ -61,7 +61,7 @@
         <h2>スピードを選択してください</h2>
         <div id="speedButtons">
             <button onclick="setSpeed(1)">PC推奨 (1倍)</button>
-            <button onclick="setSpeed(6)">スマホ推奨 (6倍)</button>
+            <button onclick="setSpeed(7)">スマホ推奨 (7倍)</button>
         </div>
     </div>
     <canvas id="gameCanvas"></canvas>
@@ -106,13 +106,13 @@
             baseWidth = canvas.width;
             baseHeight = canvas.height;
 
-            const scale = speedMultiplier === 6 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+            const scale = speedMultiplier === 7 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
             bird.x = 50 * scale;
             bird.y = baseHeight / 2;
             bird.gravity = 0.1 * speedMultiplier;
             bird.jump = speedMultiplier === 1 ? -4 : -12;
-            pipeWidth = speedMultiplier === 6 ? 100 * scale : 50;
-            pipeGap = speedMultiplier === 6 ? 150 * scale : 200;
+            pipeWidth = speedMultiplier === 7 ? 100 * scale : 50;
+            pipeGap = speedMultiplier === 7 ? 150 * scale : 200;
         }
 
         function createPipe() {
@@ -125,7 +125,7 @@
         }
 
         function checkCollision() {
-            const birdSize = speedMultiplier === 6 ? 20 * Math.min(baseWidth / 600, baseHeight / 900) * 2 : 20;
+            const birdSize = speedMultiplier === 7 ? 20 * Math.min(baseWidth / 600, baseHeight / 900) * 2 : 20;
             if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
                 if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
@@ -142,7 +142,7 @@
             ctx.translate(bird.x, bird.y);
             bird.wingAngle = Math.sin(frames * (0.05 * speedMultiplier)) * 0.2;
 
-            const scale = speedMultiplier === 6 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+            const scale = speedMultiplier === 7 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
@@ -208,7 +208,7 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const scale = speedMultiplier === 6 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+                const scale = speedMultiplier === 7 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
                 ctx.fillStyle = 'white';
                 ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
@@ -227,7 +227,8 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % (speedMultiplier === 6 ? 150 : 200 / speedMultiplier) === 0) createPipe();
+            // スマホ推奨 (7倍) の場合、パイプ間隔を狭く
+            if (frames % (speedMultiplier === 7 ? 75 : 200 / speedMultiplier) === 0) createPipe();
             
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 2 * speedMultiplier;
@@ -241,7 +242,7 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            const scale = speedMultiplier === 6 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+            const scale = speedMultiplier === 7 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
             ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
             ctx.fillText(`スコア: ${score}`, 10 * scale, 30 * scale);
@@ -300,11 +301,11 @@
                 canvas.height = window.innerHeight;
                 baseWidth = canvas.width;
                 baseHeight = canvas.height;
-                const scale = speedMultiplier === 6 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
+                const scale = speedMultiplier === 7 ? Math.min(baseWidth / 600, baseHeight / 900) * 2 : 1;
                 bird.x = 50 * scale;
                 bird.y = baseHeight / 2;
-                pipeWidth = speedMultiplier === 6 ? 100 * scale : 50;
-                pipeGap = speedMultiplier === 6 ? 150 * scale : 200;
+                pipeWidth = speedMultiplier === 7 ? 100 * scale : 50;
+                pipeGap = speedMultiplier === 7 ? 150 * scale : 200;
             }
         });
 
