@@ -16,9 +16,9 @@
         canvas {
             border: 1px solid #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            width: 100%; /* スマホで画面幅にフィット */
-            max-width: 400px; /* 最大幅を制限 */
-            height: auto; /* アスペクト比を維持 */
+            width: 100%;
+            max-width: 400px; /* PCの最大幅 */
+            height: auto;
         }
         #startButton {
             position: absolute;
@@ -43,35 +43,51 @@
         /* スマホ対応 */
         @media (max-width: 600px) {
             canvas {
-                height: 80vh; /* スマホで高さを調整 */
+                max-width: none; /* スマホでは制限なし */
+                width: 90vw; /* 画面幅の90% */
+                height: 90vh; /* 画面高の90% */
             }
             #startButton {
-                font-size: 16px; /* スマホでボタンサイズを小さく */
-                padding: 10px 20px;
+                font-size: 18px;
+                padding: 12px 24px;
             }
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <canvas id="gameCanvas"></canvas>
     <button id="startButton">ゲーム開始</button>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
 
+        // デバイス判別
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // キャンバスサイズ設定
+        const baseWidth = 400;
+        const baseHeight = 600;
+        if (isMobile) {
+            canvas.width = baseWidth * 3;  // スマホで3倍
+            canvas.height = baseHeight * 3;
+        } else {
+            canvas.width = baseWidth;  // PCはそのまま
+            canvas.height = baseHeight;
+        }
+
         const bird = {
-            x: 50,
-            y: 300,
+            x: isMobile ? 50 * 3 : 50,  // スマホでスケール調整
+            y: isMobile ? 300 * 3 : 300,
             velocity: 0,
-            gravity: 0.1,
-            jump: -4,
+            gravity: isMobile ? 0.1 * 2 : 0.1, // スマホで重力も調整
+            jump: isMobile ? -4 * 2 : -4,     // スマホでジャンプ力も調整
             wingAngle: 0
         };
 
         const pipes = [];
-        const pipeWidth = 50;
-        const pipeGap = 200;
+        const pipeWidth = isMobile ? 50 * 3 : 50;
+        const pipeGap = isMobile ? 200 * 3 : 200;
         let score = 0;
         let bestScore = 0;
         let gameOver = false;
@@ -80,7 +96,7 @@
         let fadeAlpha = 0;
 
         function createPipe() {
-            const pipeHeight = Math.random() * (canvas.height - pipeGap - 100) + 50;
+            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobile ? 100 * 3 : 100)) + (isMobile ? 50 * 3 : 50);
             pipes.push({
                 x: canvas.width,
                 topHeight: pipeHeight,
@@ -89,10 +105,11 @@
         }
 
         function checkCollision() {
-            if (bird.y - 20 < 0 || bird.y + 20 > canvas.height) return true;
+            const birdSize = isMobile ? 20 * 3 : 20;
+            if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
-                if (bird.x + 20 > pipe.x && bird.x - 20 < pipe.x + pipeWidth) {
-                    if (bird.y - 20 < pipe.topHeight || bird.y + 20 > pipe.topHeight + pipeGap) {
+                if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
+                    if (bird.y - birdSize < pipe.topHeight || bird.y + birdSize > pipe.topHeight + pipeGap) {
                         return true;
                     }
                 }
@@ -103,40 +120,42 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x, bird.y);
-            bird.wingAngle = Math.sin(frames * 0.15) * 0.2; // 羽ばたき速度を少しアップ
+            bird.wingAngle = Math.sin(frames * (isMobile ? 0.3 : 0.15)) * 0.2;
 
+            const scale = isMobile ? 3 : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
-            ctx.ellipse(0, 0, 20, 15, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(10, -5, 10, 0, Math.PI * 2);
+            ctx.arc(10 * scale, -5 * scale, 10 * scale, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = 'orange';
             ctx.beginPath();
-            ctx.moveTo(20, -5);
-            ctx.lineTo(30, 0);
-            ctx.lineTo(20, 5);
+            ctx.moveTo(20 * scale, -5 * scale);
+            ctx.lineTo(30 * scale, 0);
+            ctx.lineTo(20 * scale, 5 * scale);
             ctx.fill();
 
             ctx.fillStyle = 'black';
             ctx.beginPath();
-            ctx.arc(15, -7, 2, 0, Math.PI * 2);
+            ctx.arc(15 * scale, -7 * scale, 2 * scale, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.strokeStyle = 'yellow';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * scale;
             ctx.beginPath();
-            ctx.moveTo(-10, 0);
-            ctx.lineTo(-20, 5 + bird.wingAngle * 10);
+            ctx.moveTo(-10 * scale, 0);
+            ctx.lineTo(-20 * scale, (5 + bird.wingAngle * 10) * scale);
             ctx.stroke();
 
             ctx.restore();
         }
 
         function drawPipe(x, topHeight) {
+            const scale = isMobile ? 3 : 1;
             const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
             gradient.addColorStop(0, '#00cc00');
             gradient.addColorStop(0.5, '#00e600');
@@ -146,34 +165,34 @@
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x + pipeWidth, 0);
-            ctx.lineTo(x + pipeWidth, topHeight - 10);
-            ctx.quadraticCurveTo(x + pipeWidth / 2, topHeight, x, topHeight - 10);
+            ctx.lineTo(x + pipeWidth, topHeight - 10 * scale);
+            ctx.quadraticCurveTo(x + pipeWidth / 2, topHeight, x, topHeight - 10 * scale);
             ctx.closePath();
             ctx.fill();
 
             ctx.beginPath();
-            ctx.moveTo(x, topHeight + pipeGap + 10);
-            ctx.quadraticCurveTo(x + pipeWidth / 2, topHeight + pipeGap, x + pipeWidth, topHeight + pipeGap + 10);
+            ctx.moveTo(x, topHeight + pipeGap + 10 * scale);
+            ctx.quadraticCurveTo(x + pipeWidth / 2, topHeight + pipeGap, x + pipeWidth, topHeight + pipeGap + 10 * scale);
             ctx.lineTo(x + pipeWidth, canvas.height);
             ctx.lineTo(x, canvas.height);
             ctx.closePath();
             ctx.fill();
 
             ctx.fillStyle = '#009900';
-            ctx.fillRect(x - 5, topHeight - 20, pipeWidth + 10, 20);
-            ctx.fillRect(x - 5, topHeight + pipeGap, pipeWidth + 10, 20);
+            ctx.fillRect(x - 5 * scale, topHeight - 20 * scale, pipeWidth + 10 * scale, 20 * scale);
+            ctx.fillRect(x - 5 * scale, topHeight + pipeGap, pipeWidth + 10 * scale, 20 * scale);
 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.fillRect(x + 5, 0, 10, topHeight - 10);
-            ctx.fillRect(x + 5, topHeight + pipeGap + 10, 10, canvas.height - (topHeight + pipeGap + 10));
+            ctx.fillRect(x + 5 * scale, 0, 10 * scale, topHeight - 10 * scale);
+            ctx.fillRect(x + 5 * scale, topHeight + pipeGap + 10 * scale, 10 * scale, canvas.height - (topHeight + pipeGap + 10 * scale));
 
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.fillRect(x + pipeWidth - 5, 0, 5, topHeight - 10);
-            ctx.fillRect(x + pipeWidth - 5, topHeight + pipeGap + 10, 5, canvas.height - (topHeight + pipeGap + 10));
+            ctx.fillRect(x + pipeWidth - 5 * scale, 0, 5 * scale, topHeight - 10 * scale);
+            ctx.fillRect(x + pipeWidth - 5 * scale, topHeight + pipeGap + 10 * scale, 5 * scale, canvas.height - (topHeight + pipeGap + 10 * scale));
         }
 
         function resetGame() {
-            bird.y = 300;
+            bird.y = isMobile ? 300 * 3 : 300;
             bird.velocity = -2;
             pipes.length = 0;
             score = 0;
@@ -202,15 +221,16 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+                const scale = isMobile ? 3 : 1;
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 36px Roboto';
+                ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                ctx.shadowBlur = 10;
-                ctx.fillText('ゲームオーバー', canvas.width / 2, canvas.height / 2 - 20);
-                ctx.font = '24px Roboto';
-                ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
-                ctx.fillText(`最高スコア: ${bestScore}`, canvas.width / 2, canvas.height / 2 + 60);
+                ctx.shadowBlur = 10 * scale;
+                ctx.fillText('ゲームオーバー', canvas.width / 2, canvas.height / 2 - 20 * scale);
+                ctx.font = `${24 * scale}px Roboto`;
+                ctx.fillText(`スコア: ${score}`, canvas.width / 2, canvas.height / 2 + 20 * scale);
+                ctx.fillText(`最高スコア: ${bestScore}`, canvas.width / 2, canvas.height / 2 + 60 * scale);
                 ctx.shadowBlur = 0;
                 ctx.textAlign = 'start';
 
@@ -223,10 +243,10 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % 100 === 0) createPipe(); // パイプ生成間隔を短く（150→100）
+            if (frames % (isMobile ? 50 : 100) === 0) createPipe(); // スマホで生成間隔を半分に
             
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= 4; // スピードを2から4にアップ
+                pipes[i].x -= isMobile ? 8 : 4; // スマホで速度2倍（4→8）
                 drawPipe(pipes[i].x, pipes[i].topHeight);
 
                 if (!pipes[i].passed && bird.x > pipes[i].x + pipeWidth) {
@@ -237,12 +257,13 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            ctx.font = 'bold 20px Roboto';
+            const scale = isMobile ? 3 : 1;
+            ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 5;
-            ctx.fillText(`スコア: ${score}`, 10, 30);
-            ctx.fillText(`最高スコア: ${bestScore}`, 10, 60);
+            ctx.shadowBlur = 5 * scale;
+            ctx.fillText(`スコア: ${score}`, 10 * scale, 30 * scale);
+            ctx.fillText(`最高スコア: ${bestScore}`, 10 * scale, 60 * scale);
             ctx.shadowBlur = 0;
 
             if (checkCollision()) {
