@@ -12,19 +12,17 @@
             justify-content: center;
             align-items: center;
             font-family: 'Roboto', sans-serif;
+            flex-direction: column;
         }
         canvas {
             border: 1px solid #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 400px; /* PCの最大幅 */
+            max-width: 400px;
             height: auto;
+            display: none;
         }
-        #startButton {
-            position: absolute;
-            left: 50%;
-            top: 70%;
-            transform: translate(-50%, -50%);
+        #startButton, #pcButton, #mobileButton {
             padding: 12px 24px;
             font-size: 20px;
             font-family: 'Roboto', sans-serif;
@@ -34,60 +32,68 @@
             border-radius: 8px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: box-shadow 0.2s;
+            margin: 10px;
         }
-        #startButton:hover {
-            transform: translate(-50%, -55%);
+        #startButton:hover, #pcButton:hover, #mobileButton:hover {
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
         }
-        /* スマホ対応 */
+        #startButton {
+            position: absolute;
+            left: 50%;
+            top: 70%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        #modeSelect {
+            text-align: center;
+            color: white;
+        }
         @media (max-width: 600px) {
             canvas {
-                max-width: none; /* スマホでは制限なし */
-                width: 90vw; /* 画面幅の90% */
-                height: 90vh; /* 画面高の90% */
+                max-width: none;
+                width: 95vw;
+                height: 95vh;
             }
-            #startButton {
+            #startButton, #pcButton, #mobileButton {
                 font-size: 18px;
-                padding: 12px 24px;
+                padding: 10px 20px;
             }
         }
     </style>
 </head>
 <body>
+    <div id="modeSelect">
+        <h2>モードを選択してください</h2>
+        <button id="pcButton">PC版</button>
+        <button id="mobileButton">スマホ版</button>
+    </div>
     <canvas id="gameCanvas"></canvas>
     <button id="startButton">ゲーム開始</button>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
+        const pcButton = document.getElementById('pcButton');
+        const mobileButton = document.getElementById('mobileButton');
+        const modeSelect = document.getElementById('modeSelect');
 
-        // デバイス判別
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        // キャンバスサイズ設定
+        let isMobileMode = false;
         const baseWidth = 400;
         const baseHeight = 600;
-        if (isMobile) {
-            canvas.width = baseWidth * 3;  // スマホで3倍
-            canvas.height = baseHeight * 3;
-        } else {
-            canvas.width = baseWidth;  // PCはそのまま
-            canvas.height = baseHeight;
-        }
 
         const bird = {
-            x: isMobile ? 50 * 3 : 50,  // スマホでスケール調整
-            y: isMobile ? 300 * 3 : 300,
+            x: 50,
+            y: 300,
             velocity: 0,
-            gravity: isMobile ? 0.1 * 2 : 0.1, // スマホで重力も調整
-            jump: isMobile ? -4 * 2 : -4,     // スマホでジャンプ力も調整
+            gravity: 0.1,
+            jump: -4,
             wingAngle: 0
         };
 
         const pipes = [];
-        const pipeWidth = isMobile ? 50 * 3 : 50;
-        const pipeGap = isMobile ? 200 * 3 : 200;
+        let pipeWidth = 50;
+        let pipeGap = 200;
         let score = 0;
         let bestScore = 0;
         let gameOver = false;
@@ -95,8 +101,38 @@
         let frames = 0;
         let fadeAlpha = 0;
 
+        function setMode(mobile) {
+            isMobileMode = mobile;
+            canvas.style.display = 'block';
+            startButton.style.display = 'block';
+            modeSelect.style.display = 'none';
+
+            if (isMobileMode) {
+                canvas.width = baseWidth * 8;
+                canvas.height = baseHeight * 8;
+                bird.x = 50 * 8;
+                bird.y = 300 * 8;
+                bird.gravity = 0.1 * 4;
+                bird.jump = -4 * 4;
+                pipeWidth = 50 * 8;
+                pipeGap = 150 * 8;
+            } else {
+                canvas.width = baseWidth;
+                canvas.height = baseHeight;
+                bird.x = 50;
+                bird.y = 300;
+                bird.gravity = 0.1;
+                bird.jump = -4;
+                pipeWidth = 50;
+                pipeGap = 200;
+            }
+        }
+
+        pcButton.addEventListener('click', () => setMode(false));
+        mobileButton.addEventListener('click', () => setMode(true));
+
         function createPipe() {
-            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobile ? 100 * 3 : 100)) + (isMobile ? 50 * 3 : 50);
+            const pipeHeight = Math.random() * (canvas.height - pipeGap - (isMobileMode ? 100 * 8 : 100)) + (isMobileMode ? 50 * 8 : 50);
             pipes.push({
                 x: canvas.width,
                 topHeight: pipeHeight,
@@ -105,7 +141,7 @@
         }
 
         function checkCollision() {
-            const birdSize = isMobile ? 20 * 3 : 20;
+            const birdSize = isMobileMode ? 20 * 8 : 20;
             if (bird.y - birdSize < 0 || bird.y + birdSize > canvas.height) return true;
             for (let pipe of pipes) {
                 if (bird.x + birdSize > pipe.x && bird.x - birdSize < pipe.x + pipeWidth) {
@@ -120,9 +156,9 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x, bird.y);
-            bird.wingAngle = Math.sin(frames * (isMobile ? 0.3 : 0.15)) * 0.2;
+            bird.wingAngle = Math.sin(frames * (isMobileMode ? 0.6 : 0.05)) * 0.2;
 
-            const scale = isMobile ? 3 : 1;
+            const scale = isMobileMode ? 8 : 1;
             ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.ellipse(0, 0, 20 * scale, 15 * scale, 0, 0, Math.PI * 2);
@@ -155,7 +191,7 @@
         }
 
         function drawPipe(x, topHeight) {
-            const scale = isMobile ? 3 : 1;
+            const scale = isMobileMode ? 8 : 1;
             const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
             gradient.addColorStop(0, '#00cc00');
             gradient.addColorStop(0.5, '#00e600');
@@ -192,7 +228,7 @@
         }
 
         function resetGame() {
-            bird.y = isMobile ? 300 * 3 : 300;
+            bird.y = isMobileMode ? 300 * 8 : 300;
             bird.velocity = -2;
             pipes.length = 0;
             score = 0;
@@ -221,7 +257,7 @@
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const scale = isMobile ? 3 : 1;
+                const scale = isMobileMode ? 8 : 1;
                 ctx.fillStyle = 'white';
                 ctx.font = `bold ${36 * scale}px Roboto`;
                 ctx.textAlign = 'center';
@@ -243,10 +279,10 @@
             bird.y += bird.velocity;
             drawBird();
 
-            if (frames % (isMobile ? 50 : 100) === 0) createPipe(); // スマホで生成間隔を半分に
+            if (frames % (isMobileMode ? 180 : 200) === 0) createPipe(); // スマホ版のパイプ間隔を少し広く
             
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= isMobile ? 8 : 4; // スマホで速度2倍（4→8）
+                pipes[i].x -= isMobileMode ? 16 : 2;
                 drawPipe(pipes[i].x, pipes[i].topHeight);
 
                 if (!pipes[i].passed && bird.x > pipes[i].x + pipeWidth) {
@@ -257,7 +293,7 @@
                 if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
             }
 
-            const scale = isMobile ? 3 : 1;
+            const scale = isMobileMode ? 8 : 1;
             ctx.font = `bold ${20 * scale}px Roboto`;
             ctx.fillStyle = 'white';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
