@@ -102,7 +102,7 @@
             bird.x = 50;
             bird.y = 450;
             bird.gravity = 0.1 * speedMultiplier;
-            bird.jump = -4; // 5倍でも-4で統一、抑えすぎ解消
+            bird.jump = speedMultiplier === 1 ? -4 : -12; // 1倍は-4、5倍は-12（3倍強化）
             pipeWidth = 50;
             pipeGap = 200;
         }
